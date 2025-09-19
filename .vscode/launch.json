@@ -1,0 +1,15 @@
+{
+    // Configuração para depuração/execução de C/C++
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Executar Tetris",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/tetris.out",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Compilar Tetris"
+        }
+    ]
+}

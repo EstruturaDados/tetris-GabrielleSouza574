@@ -1,113 +1,199 @@
-# Desafio Tetris Stack - Controle de Peças com Estruturas de Dados
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-Bem-vindo ao desafio **"Tetris Stack"**! Neste jogo inspirado nas mecânicas clássicas de montagem de peças, o jogador deve organizar, reservar e manipular peças em tempo real. Para isso, você, como programador, será responsável por implementar as estruturas de controle que regem a lógica das peças.
+#define MAX_FILA 5   // Capacidade da fila
+#define MAX_PILHA 3  // Capacidade da pilha
 
-A empresa **ByteBros**, especializada em jogos educacionais de lógica e programação, contratou você para desenvolver o sistema de gerenciamento de peças, utilizando estruturas como **fila circular** e **pilha**.
+// Estrutura que representa uma peça de Tetris
+typedef struct {
+    char nome; // Tipo da peça ('I', 'O', 'T', 'L')
+    int id;    // Identificador único
+} Peca;
 
-O desafio está dividido em três níveis: **Novato**, **Aventureiro** e **Mestre**, com cada nível adicionando mais complexidade ao anterior.  
-**Você deve escolher qual desafio deseja realizar.**
+// Estrutura da fila circular
+typedef struct {
+    Peca itens[MAX_FILA];
+    int frente;
+    int tras;
+    int quantidade;
+} Fila;
 
-🚨 **Atenção:** O nível Novato foca apenas na fila de peças, usando conceitos básicos de structs, arrays e modularização.
+// Estrutura da pilha linear
+typedef struct {
+    Peca itens[MAX_PILHA];
+    int topo;
+} Pilha;
 
-## 🎮 Nível Novato: Fila de Peças Futuras
+// ---------------- Funções da Fila ----------------
 
-No nível Novato, você criará o sistema inicial de controle das peças futuras do jogo Tetris Stack. As peças possuem um **nome** (representando o tipo, como 'I', 'O', 'T', 'L') e um **id** exclusivo (identificador numérico).
+// Inicializa a fila
+void inicializarFila(Fila *f) {
+    f->frente = 0;
+    f->tras = -1;
+    f->quantidade = 0;
+}
 
-🚩 **Objetivo:** Criar um programa em C que simula uma **fila circular** de 5 peças com as seguintes funcionalidades:
+// Verifica se a fila está cheia
+int filaCheia(Fila *f) {
+    return f->quantidade == MAX_FILA;
+}
 
-*   Visualizar a fila atual
-*   Jogar (remover) a peça da frente
-*   Inserir automaticamente uma nova peça no final da fila
+// Verifica se a fila está vazia
+int filaVazia(Fila *f) {
+    return f->quantidade == 0;
+}
 
-⚙️ **Funcionalidades do Sistema:**
+// Insere peça no final da fila (enqueue)
+void enqueue(Fila *f, Peca p) {
+    if (filaCheia(f)) return; // nunca deve encher além do limite
+    f->tras = (f->tras + 1) % MAX_FILA;
+    f->itens[f->tras] = p;
+    f->quantidade++;
+}
 
-*   Inicializar a fila com 5 peças geradas automaticamente.
-*   Permitir que o usuário:
-    *   Jogue uma peça (dequeue)
-    *   Insira uma nova peça (enqueue)
-    *   Visualize o estado atual da fila
-*   Manter a fila circular, reaproveitando o espaço.
+// Remove peça da frente da fila (dequeue)
+Peca dequeue(Fila *f) {
+    Peca removida = {'-', -1};
+    if (filaVazia(f)) return removida;
+    removida = f->itens[f->frente];
+    f->frente = (f->frente + 1) % MAX_FILA;
+    f->quantidade--;
+    return removida;
+}
 
-📥 **Entrada** e 📤 **Saída de Dados:**
+// Exibe o estado atual da fila
+void exibirFila(Fila *f) {
+    printf("\n🎮 Fila de peças:\n");
+    if (filaVazia(f)) {
+        printf("[ Vazia ]\n");
+        return;
+    }
+    for (int i = 0; i < f->quantidade; i++) {
+        int pos = (f->frente + i) % MAX_FILA;
+        printf("[ %c %d ] ", f->itens[pos].nome, f->itens[pos].id);
+    }
+    printf("\n");
+}
 
-*   O programa utiliza menus via terminal.
-*   A cada ação, o estado atualizado da fila é exibido com `printf`.
+// ---------------- Funções da Pilha ----------------
 
-**Simplificações para o Nível Novato:**
+// Inicializa a pilha
+void inicializarPilha(Pilha *p) {
+    p->topo = -1;
+}
 
-*   Trabalhe **apenas com a fila**.
-*   A fila deve conter **exatamente 5 elementos**.
-*   Use uma função `gerarPeca()` para criar automaticamente novas peças.
-*   Utilize structs e arrays. Não implemente pilha.
+// Verifica se a pilha está cheia
+int pilhaCheia(Pilha *p) {
+    return p->topo == MAX_PILHA - 1;
+}
 
-## 🛡️ Nível Aventureiro: Reserva de Peças com Pilha
+// Verifica se a pilha está vazia
+int pilhaVazia(Pilha *p) {
+    return p->topo == -1;
+}
 
-No nível Aventureiro, você irá expandir o sistema com uma **pilha de reserva de peças**, que permite ao jogador guardar peças para uso posterior.
+// Empilha uma peça (push)
+void push(Pilha *p, Peca x) {
+    if (pilhaCheia(p)) {
+        printf("⚠️ A pilha está cheia! Não é possível reservar mais peças.\n");
+        return;
+    }
+    p->itens[++p->topo] = x;
+}
 
-🆕 **Diferença em relação ao Nível Novato:**
+// Desempilha uma peça (pop)
+Peca pop(Pilha *p) {
+    Peca removida = {'-', -1};
+    if (pilhaVazia(p)) {
+        printf("⚠️ A pilha está vazia! Nenhuma peça reservada.\n");
+        return removida;
+    }
+    return p->itens[p->topo--];
+}
 
-*   Introdução da **pilha linear** para reservar peças.
-*   A fila permanece sempre cheia com 5 peças.
+// Exibe o estado da pilha
+void exibirPilha(Pilha *p) {
+    printf("\n📦 Pilha de reserva:\n");
+    if (pilhaVazia(p)) {
+        printf("[ Vazia ]\n");
+        return;
+    }
+    for (int i = p->topo; i >= 0; i--) {
+        printf("[ %c %d ]\n", p->itens[i].nome, p->itens[i].id);
+    }
+}
 
-⚙️ **Funcionalidades do Sistema:**
+// ---------------- Geração de peças ----------------
 
-*   Além das opções anteriores, o usuário pode:
-    *   Reservar a peça da frente da fila (push)
-    *   Usar uma peça reservada (pop)
-*   A fila continua funcionando com inserção automática.
-*   A pilha tem **capacidade máxima de 3 peças**.
+// Função que gera automaticamente uma peça
+Peca gerarPeca(int id) {
+    Peca nova;
+    char tipos[] = {'I', 'O', 'T', 'L'};
+    nova.nome = tipos[rand() % 4]; // Sorteia um tipo
+    nova.id = id;                  // ID único
+    return nova;
+}
 
-📥 **Entrada** e 📤 **Saída de Dados:**
+// ---------------- Programa Principal ----------------
+int main() {
+    Fila fila;
+    Pilha pilha;
+    int opcao;
+    int contadorID = 0; // IDs únicos
 
-*   Menu com 4 opções:
-    * `1` - Jogar peça
-    * `2` - Reservar peça
-    * `3` - Usar peça reservada
-    * `0` - Sair
-*   O estado da fila e da pilha é exibido após cada ação.
+    srand(time(NULL));
+    inicializarFila(&fila);
+    inicializarPilha(&pilha);
 
-**Simplificações para o Nível Intermediário:**
+    // Preenche fila inicial com 5 peças
+    for (int i = 0; i < MAX_FILA; i++) {
+        enqueue(&fila, gerarPeca(contadorID++));
+    }
 
-*   A pilha não permite escolha da posição.
-*   O jogador **não escolhe o tipo da peça** — todas são geradas automaticamente.
-*   Não há comparação nem troca direta entre as estruturas.
+    do {
+        exibirFila(&fila);
+        exibirPilha(&pilha);
 
-## 🏆 Nível Mestre: Integração Total com Estratégia
+        printf("\nOpções de ação:\n");
+        printf("1 - Jogar peça\n");
+        printf("2 - Reservar peça\n");
+        printf("3 - Usar peça reservada\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
 
-No nível Mestre, você implementará uma **integração complexa** entre a fila e a pilha, simulando funcionalidades avançadas como **troca**, **desfazer** e **inversão de peças**.
+        switch (opcao) {
+            case 1: {
+                Peca jogada = dequeue(&fila);
+                if (jogada.id != -1) {
+                    printf("👉 Você jogou a peça [%c %d]\n", jogada.nome, jogada.id);
+                    enqueue(&fila, gerarPeca(contadorID++)); // mantém fila cheia
+                }
+                break;
+            }
+            case 2: {
+                Peca reservada = dequeue(&fila);
+                if (reservada.id != -1) {
+                    push(&pilha, reservada);
+                    printf("📥 Peça [%c %d] reservada!\n", reservada.nome, reservada.id);
+                    enqueue(&fila, gerarPeca(contadorID++)); // mantém fila cheia
+                }
+                break;
+            }
+            case 3: {
+                Peca usada = pop(&pilha);
+                if (usada.id != -1)
+                    printf("📤 Você usou a peça reservada [%c %d]\n", usada.nome, usada.id);
+                break;
+            }
+            case 0:
+                printf("👋 Saindo do jogo...\n");
+                break;
+            default:
+                printf("⚠️ Opção inválida! Tente novamente.\n");
+        }
+    } while (opcao != 0);
 
-🆕 **Diferença em relação ao Nível Aventureiro:**
-
-*   Operações mais complexas e estratégicas entre as estruturas.
-*   Manipulação reversível do estado das peças.
-
-⚙️ **Funcionalidades do Sistema:**
-
-*   Menu com múltiplas ações:
-    * `1` - Jogar peça
-    * `2` - Reservar peça
-    * `3` - Usar peça reservada
-    * `4` - Trocar peça do topo da pilha com a da frente da fila
-    * `5` - Desfazer última jogada
-    * `6` - Inverter fila com pilha
-    * `0` - Sair
-*   Controle de fila circular e pilha de reserva com atualização a cada ação.
-
-📥 **Entrada** e 📤 **Saída de Dados:**
-
-*   Mesmo estilo dos níveis anteriores.
-*   Agora exige controle total do fluxo e da memória entre as estruturas.
-
-**Observações:**
-
-*   Cada operação deve ser segura e manter a integridade dos dados.
-*   A complexidade exige modularização clara e funções bem separadas.
-
-## 🏁 Conclusão
-
-Ao concluir qualquer um dos níveis, você terá exercitado conceitos fundamentais de estrutura de dados, como **fila circular** e **pilha**, em um contexto prático de desenvolvimento de jogos.
-
-Boa sorte e divirta-se programando!
-
-Equipe de Ensino - ByteBros
-
+    return 0;
+}
